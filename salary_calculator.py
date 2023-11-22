@@ -152,14 +152,12 @@ def calculate_pension(
 
 def calculate_NIC(gross_annual_salary, pension_type, taxable_pay, annual_pension):
     national_insurance = 0
-    print("Initial NI: ", national_insurance)
     if (
         gross_annual_salary >= PT
         and gross_annual_salary < NICUEL
         and pension_type == "auto"
     ):
         national_insurance = ((gross_annual_salary - PT) * 0.12) / 12
-        print("Final NI: ", national_insurance)
     elif (
         gross_annual_salary >= PT
         and gross_annual_salary < NICUEL
