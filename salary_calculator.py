@@ -431,7 +431,7 @@ def print_output(
     print(
         f"""
     Your payslip this month should be as follows:\n
-    Gross Pay:  £{monthly_gross:.2f}
+    Gross Pay: £{monthly_gross:.2f}
     Tax: £{abs(tax):.2f}
     National Insurance: £{national_insurance:.2f}
     Student Loan: £{student_loan:.2f}
