@@ -137,9 +137,9 @@ def calculate_taxable_pay(tax_code, annual_salary):
 
     # If K tax code, user has underpaid tax. Tax-free amount to be added to annual salary to adjust
     if "K" in tax_code:
-        return (round(annual_salary + tax_free, 2), tax_code)
+        return (annual_salary + tax_free, tax_code)
 
-    return (round(annual_salary - tax_free, 2), tax_code)
+    return (annual_salary - tax_free, tax_code)
 
 
 def calculate_pension(
@@ -168,7 +168,7 @@ def calculate_pension(
         annual_pension = annual_gross_salary * pension_percentage
         # Adjustment for taxable pay and student loan
         taxable_pay -= annual_pension
-        student_loan_salary = annual_gross_salary - round(annual_pension, 2)
+        student_loan_salary = annual_gross_salary - annual_pension
 
     elif pension_type == "none":
         annual_pension = 0
@@ -178,11 +178,7 @@ def calculate_pension(
         print("Error: Could not calculate pension")
         quit()
 
-    return (
-        round(taxable_pay, 2),
-        round(annual_pension, 2),
-        round(student_loan_salary, 2),
-    )
+    return (taxable_pay, annual_pension, student_loan_salary)
 
 
 def calculate_NIC(gross_annual_salary, pension_type, annual_pension):
@@ -242,7 +238,7 @@ def calculate_tax(taxable_pay, annual_salary, tax_code):
     if "K" in tax_code:
         # 20% tax
         if taxable_pay <= RATES_AND_ALLOWANCES["UEL_MINUS_PA"]:
-            return round((taxable_pay * 0.20) / 12, 2)
+            return (taxable_pay * 0.20) / 12
         # 40% tax
         if (
             taxable_pay > RATES_AND_ALLOWANCES["UEL_MINUS_PA"]
@@ -254,7 +250,7 @@ def calculate_tax(taxable_pay, annual_salary, tax_code):
             tax_at_40_perc = (
                 (taxable_pay - RATES_AND_ALLOWANCES["UEL_MINUS_PA"]) * 0.4
             ) / 12
-            return round((tax_at_20_perc + tax_at_40_perc), 2)
+            return tax_at_20_perc + tax_at_40_perc
         # 45% tax
         tax_at_20_perc = (
             (RATES_AND_ALLOWANCES["UEL"] - RATES_AND_ALLOWANCES["PA"]) * 0.20
@@ -269,20 +265,20 @@ def calculate_tax(taxable_pay, annual_salary, tax_code):
         tax_at_45_perc = (
             (taxable_pay - RATES_AND_ALLOWANCES["ADDITIONAL_RATE"]) * 0.45
         ) / 12
-        return round((tax_at_20_perc + tax_at_40_perc + tax_at_45_perc), 2)
+        return tax_at_20_perc + tax_at_40_perc + tax_at_45_perc
 
     if tax_code == "BR":
-        return round((taxable_pay * 0.20) / 12, 2)
+        return (taxable_pay * 0.20) / 12
 
     if tax_code == "D0":
-        return round((taxable_pay * 0.40) / 12, 2)
+        return (taxable_pay * 0.40) / 12
 
     if tax_code == "D1":
-        return round((taxable_pay * 0.45) / 12, 2)
+        return (taxable_pay * 0.45) / 12
 
     # 20% tax
     if annual_salary <= RATES_AND_ALLOWANCES["UEL"]:
-        return round((taxable_pay * 0.20) / 12, 2)
+        return (taxable_pay * 0.20) / 12
 
     # 40% tax
     if (
@@ -296,9 +292,9 @@ def calculate_tax(taxable_pay, annual_salary, tax_code):
             tax_at_40_perc = (
                 (taxable_pay - RATES_AND_ALLOWANCES["UEL_MINUS_PA"]) * 0.40
             ) / 12
-            return round((tax_at_20_perc + tax_at_40_perc), 2)
+            return tax_at_20_perc + tax_at_40_perc
         # Else, 20% tax
-        return round((taxable_pay * 0.20) / 12, 2)
+        return (taxable_pay * 0.20) / 12
 
     # 45% tax
     if taxable_pay >= RATES_AND_ALLOWANCES["ADDITIONAL_RATE"]:
@@ -315,13 +311,13 @@ def calculate_tax(taxable_pay, annual_salary, tax_code):
         tax_at_45_perc = (
             (taxable_pay - RATES_AND_ALLOWANCES["ADDITIONAL_RATE"]) * 0.45
         ) / 12
-        return round((tax_at_20_perc + tax_at_40_perc + tax_at_45_perc), 2)
+        return tax_at_20_perc + tax_at_40_perc + tax_at_45_perc
     # Else, 40% tax
     tax_at_20_perc = (
         (RATES_AND_ALLOWANCES["UEL"] - RATES_AND_ALLOWANCES["PA"]) * 0.2
     ) / 12
     tax_at_40_perc = ((taxable_pay - RATES_AND_ALLOWANCES["UEL_MINUS_PA"]) * 0.4) / 12
-    return round((tax_at_20_perc + tax_at_40_perc), 2)
+    return tax_at_20_perc + tax_at_40_perc
 
 
 def calculate_student_loan(student_loan_plan, student_loan_salary):
@@ -374,7 +370,7 @@ def calculate_student_loan(student_loan_plan, student_loan_salary):
     return 0
 
 
-def main():
+def get_input():
     annual_gross = get_annual_salary()
     monthly_gross = annual_gross / 12
     tax_code = get_tax_code()
@@ -385,6 +381,24 @@ def main():
     if pension_type != "none":
         pension_percentage = get_pension_percentage()
 
+    return (
+        annual_gross,
+        monthly_gross,
+        tax_code,
+        student_loan_plan,
+        pension_percentage,
+        pension_type,
+    )
+
+
+def calculate(
+    annual_gross,
+    monthly_gross,
+    tax_code,
+    student_loan_plan,
+    pension_percentage,
+    pension_type,
+):
     (taxable_pay, tax_code) = calculate_taxable_pay(tax_code, annual_gross)
     (taxable_pay, annual_pension, student_loan_salary) = calculate_pension(
         pension_type, annual_gross, pension_percentage, taxable_pay
@@ -395,12 +409,25 @@ def main():
     tax = calculate_tax(taxable_pay, annual_gross, tax_code)
     student_loan = calculate_student_loan(student_loan_plan, student_loan_salary)
 
-    monthly_pension = annual_pension / 12
+    monthly_pension = round(annual_pension / 12, 2)
 
     net_pay = round(
         monthly_gross - tax - national_insurance - monthly_pension - student_loan, 2
     )
 
+    return (
+        round(monthly_gross, 2),
+        round(tax, 2),
+        round(national_insurance, 2),
+        round(student_loan, 2),
+        round(monthly_pension, 2),
+        round(net_pay, 2),
+    )
+
+
+def print_output(
+    monthly_gross, tax, national_insurance, student_loan, monthly_pension, net_pay
+):
     print(
         f"""
     Your payslip this month should be as follows:\n
@@ -413,6 +440,3 @@ def main():
     Therefore, your take home pay is £{net_pay:.2f}
     """
     )
-
-
-main()
